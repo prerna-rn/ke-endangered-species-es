@@ -4,9 +4,6 @@ import streamlit as st
 import os
 import base64
 
-import base64
-
-
 # Load the knowledge base (CSV file)
 df = pd.read_csv('knowledgebase.csv')
 
@@ -67,6 +64,8 @@ class EndangeredSpeciesExpertSystem(KnowledgeEngine):
             self.declare(Fact(warning=species.iloc[0]['warning']))
             self.declare(Fact(recommendation_to_save=species.iloc[0]['recommendation_to_save']))
             self.declare(Fact(physical_description=species.iloc[0]['physical_description']))
+            # Fetch image path
+            self.declare(Fact(image_path=species.iloc[0]['image_path']))
 
 # Function to run the expert system
 def run_expert_system(habitat, diet, offsprings, lifespan):
@@ -84,11 +83,15 @@ def run_expert_system(habitat, diet, offsprings, lifespan):
     
     # Retrieve the results
     results = {}
+    image_path = None
     for fact in engine.facts.values():
         if isinstance(fact, Fact):
             results.update(fact)
+            # Fetch image path
+            if 'image_path' in fact:
+                image_path = fact['image_path']
     
-    return results
+    return results, image_path
 
 # Streamlit interface
 st.title("Endangered Species Expert System")
@@ -116,21 +119,22 @@ def set_background(png_file):
 set_background('img3.jpg')
 
 # Collect user input from Streamlit widgets
-habitat = st.selectbox('Select Habitat:', ['Bamboo Forest', 'Savannah', 'Rainforest', 'Grassland', 'Arctic', 'Mountain', 'Ocean', 'Coastal'])
+habitat = st.selectbox('Select Habitat:', ['Bamboo Forest', 'Savannah', 'Rainforest', 'Eucalyptus Forest', 'Grassland', 'Arctic', 'Mountain', 'Ocean', 'Coastal'])
 diet = st.selectbox('Select Diet:', ['Herbivore', 'Carnivore', 'Omnivore'])
 offsprings = st.text_input('Enter Offsprings:')
 lifespan = st.text_input('Enter Lifespan:')
 
 # Button to run the expert system
 if st.button('Run Expert System'):
-    result = run_expert_system(habitat, diet, offsprings, lifespan)
+    result, image_path = run_expert_system(habitat, diet, offsprings, lifespan)
     
     order = [
         "name", "scientific_name", "habitat", "conservation_status", "population", 
         "threats", "diet", "offsprings", "lifespan", "physical_description", 
         "habitat_type", "endangered_factors", "warning", "recommendation_to_save"
     ]
-      # Define CSS styles for bold labels and colored text
+    
+    # Define CSS styles for bold labels and colored text
     label_style = "font-weight: bold; color: #228B22;"  # Orange color for labels
     value_style = "color: #37474f;"  # Dark gray color for values
 
@@ -139,3 +143,7 @@ if st.button('Run Expert System'):
     for key in order:
         if key in result:
             st.markdown(f"<span style='{label_style}'>{key}:</span> <span style='{value_style}'>{result[key]}</span>", unsafe_allow_html=True)
+    
+    # Display the image if available
+    if image_path:
+        st.image(image_path, caption=f"Image of {result.get('name', 'Animal')}")
