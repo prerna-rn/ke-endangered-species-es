@@ -5,7 +5,7 @@ import os
 import base64
 
 # Load the knowledge base (CSV file)
-df = pd.read_csv('knowledgebase.csv')
+df = pd.read_csv('./knowledgebase.csv')
 
 # Define the facts for the expert system
 class FactData(Fact):
@@ -116,7 +116,7 @@ def set_background(png_file):
     ''' % bin_str
     st.markdown(page_bg_img, unsafe_allow_html=True)
 
-set_background('img3.jpg')
+set_background('./bg.jpg')
 
 # Collect user input from Streamlit widgets
 habitat = st.selectbox('Select Habitat:', ['Bamboo Forest', 'Savannah', 'Rainforest', 'Eucalyptus Forest', 'Grassland', 'Arctic', 'Mountain', 'Ocean', 'Coastal'])
